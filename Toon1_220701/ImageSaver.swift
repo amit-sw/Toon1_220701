@@ -52,6 +52,7 @@ class ImageSaver: NSObject {
          return maskedImage
     }
     
+    /*
     func captureScreenshot(){
                 let layer = UIApplication.shared.keyWindow!.layer
                 let scale = UIScreen.main.scale
@@ -63,6 +64,7 @@ class ImageSaver: NSObject {
                 // THIS IS TO SAVE SCREENSHOT TO PHOTOS
                 UIImageWriteToSavedPhotosAlbum(screenshot!, nil, nil, nil)
       }
+     */
     
 }
 

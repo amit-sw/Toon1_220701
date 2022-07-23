@@ -15,52 +15,67 @@ struct ContentView: View {
     @State private var showingImagePicker = false
     @State private var inputImage: UIImage? = UIImage(named: "paws")
     @State private var toonified=false
-    
-    var mainImage: some View {
-        VStack(spacing:10) {
-            if toonified {
-                Image("topBar")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                Image(uiImage: inputImage!).resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .clipShape(Circle())
-                Image("aiExpert")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-            } else {
-                Image(uiImage: inputImage!).resizable()
-                    .aspectRatio(contentMode: .fill)
-            }
-            
-        }
-        .background(Color.blue)
-    }
-    
-    
+    @State private var buttonText="Make me an AI expert"
+    @State private var buttonImage="IloveAI"
+
     var body: some View {
-        HStack {
+
             VStack (alignment: .center,
-                    spacing: 20){
-                Text("Toonify")
-                    .font(.system(.largeTitle, design: .rounded))
-                    .fontWeight(.bold)
-                Text(userMessage)
-                mainImage
-                //Image(uiImage: inputImage!).resizable()
-                //    .aspectRatio(contentMode: .fit)
-                Button("Lets start!!"){
-                    self.buttonPressed()
+                    spacing: 5){
+                Image("newTopBar")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(height:100)
+
+                //Text(userMessage)
+                if toonified {
+                    Image(uiImage: inputImage!).resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(height:400)
+                        .clipShape(Circle())
+                } else {
+                    Image(uiImage: inputImage!).resizable()
+                        .aspectRatio(contentMode: .fill)
                 }
-                .padding(.all, 14.0)
-                .foregroundColor(.white)
-                .background(Color.green)
-                .cornerRadius(10)
-            }
-                    .font(.title)
+                button2
+                Spacer()
         }.sheet(isPresented: $showingImagePicker, onDismiss: processImage) {
             ImagePicker(image: self.$inputImage)
         }
+        .background(Color.blue)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    var buttonOriginal : some View {
+        Button(action:{
+            self.buttonPressed()
+        }) {
+            Image(buttonImage)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+        }
+        .padding(.all, 10.0)
+        .font(.system(size: 40))
+        .foregroundColor(.white)
+        .background(Color.blue)
+        .cornerRadius(10)
+    }
+    
+    var button2 : some View {
+        Button(action:{
+            self.buttonPressed()
+        }) {
+            HStack{
+                Text("I")
+                Text("❤️")
+                Text("AI")
+            }
+        }
+        .padding(.all, 10.0)
+        .font(.system(size: 60))
+        .foregroundColor(.white)
+        .background(Color.blue)
+        .cornerRadius(10)
     }
     
     func buttonPressed() {
@@ -77,11 +92,8 @@ struct ContentView: View {
         imageSaver.writeToPhotoAlbum(image: inputImage)
         
         let imageJPG=inputImage.jpegData(compressionQuality: 0.0034)!
-        let imageB64 = Data(imageJPG).base64EncodedData()
-        let uploadURL="https://askai.aiclub.world/957e82c0-623c-49b3-b867-ae7ed29b9496"
-        if(showingImagePicker) { // Will never be called
-            submitImageOriginal(imageB64, uploadURL)
-        }
+
+
         
         let toonifyURL="https://api.deepai.org/api/toonify"
         //let toonifyURL="https://httpbin.org/post"
@@ -135,39 +147,17 @@ struct ContentView: View {
                 if let data = response.data {
                     self.inputImage = UIImage(data: data)
                     toonified=true
-                    self.userMessage="Done!!"
+                    self.userMessage=""
+                    self.buttonText="I'm an AI expert"
                     let imageSaver = ImageSaver()
                         imageSaver.writeToPhotoAlbum(image: inputImage!)
-                    let image = mainImage.snapshot()
-
-                    UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
                     let image2 = body.snapshot()
-
                     UIImageWriteToSavedPhotosAlbum(image2, nil, nil, nil)
                 }
             }
         }
     }
-    
-    func submitImageOriginal(_ imageB64:Data, _ uploadURL:String) {
-        AF.upload(imageB64, to: uploadURL).responseJSON { response in
-            
-            debugPrint(response)
-            switch response.result {
-            case .success(let responseJsonStr):
-                print("\n\n Success value and JSON: \(responseJsonStr)")
-                let myJson = JSON(responseJsonStr)
-                let predictedValue = myJson["predicted_label"].string
-                print("Saw predicted value \(String(describing: predictedValue))")
-                
-                let predictionMessage = predictedValue!
-                self.userMessage=predictionMessage
-            case .failure(let error):
-                print("\n\n Request failed with error: \(error)")
-            }
-        }
-        
-    }
+
 }
 
 struct ContentView_Previews: PreviewProvider {
@@ -183,7 +173,7 @@ struct ImagePicker: UIViewControllerRepresentable {
     func makeUIViewController(context: UIViewControllerRepresentableContext<ImagePicker>) -> UIImagePickerController {
         let picker = UIImagePickerController()
         picker.delegate = context.coordinator
-        //picker.sourceType = .camera
+//        picker.sourceType = .camera
         return picker
     }
     
